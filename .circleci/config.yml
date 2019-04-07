@@ -1,0 +1,58 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:7.10
+    steps:
+      - checkout
+      - run:
+          name: Install packages
+          command: sudo apt-get update && sudo apt-get install wget zip unzip && sudo apt-get install python-dev && sudo apt-get install python-pip -y
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Configure AWS-CLI
+          command: |
+            aws --version    
+            aws configure set default.region $AWS_REGION
+      - run:
+          name: Setup Node Application
+          command: |
+            cd ./webapp
+            npm install
+      - run:
+          name: Run Tests
+          command: |
+            cd ./webapp
+            npm test          
+      - run:
+          name: Zip Artifact
+          command: |
+            cd .
+            pwd
+            ls -al
+            mkdir codedeploy_artifact
+            cp codedeploy/*.sh ./codedeploy_artifact/
+            cp codedeploy/*.yml ./codedeploy_artifact/
+            cp -r ./webapp ./codedeploy_artifact/
+            cd codedeploy_artifact/
+            pwd
+            ls -al
+            cd ..
+            zip -r codedeploy_artifact-$CIRCLE_BUILD_NUM.zip ./codedeploy_artifact >/dev/null
+            ls -al
+            mkdir finalbuild
+            mv codedeploy_artifact-$CIRCLE_BUILD_NUM.zip ./finalbuild
+            cd finalbuild
+            ls -al
+            cd ..
+            pwd
+            ls -al
+      - run:
+          name: Deploy to S3
+          command: echo "Put commands to upload to s3 here.."
+      - run:
+          name: Deploy
+          command: echo "Put commands to trigger CodeDeploy here." 
+
