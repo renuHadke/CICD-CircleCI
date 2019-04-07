@@ -55,4 +55,10 @@ jobs:
       - run:
           name: Deploy
           command: echo "Put commands to trigger CodeDeploy here." 
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync ./finalbuild/  s3://csye6225-circleci-lab/ --delete
+      - run:
+          name: Deploy
+          command: aws deploy create-deployment --application-name codedeploy-application --deployment-group-name codedeploy-dg --s3-location bucket=csye6225-circleci-lab,bundleType=zip,key=codedeploy_artifact-$CIRCLE_BUILD_NUM.zip
 
